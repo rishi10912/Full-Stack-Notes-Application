@@ -22,11 +22,12 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
+# keep all routes related to the API in the api app's urls.py for better organization
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/user/register/", CreateUserView.as_view(), name="register"),
     path("api/token/", TokenObtainPairView.as_view(), name="get_token"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="refresh"),
     path("api-auth/", include("rest_framework.urls")), #For browsable API login/logout
-
+    path("api/", include("api.urls")),
 ]
