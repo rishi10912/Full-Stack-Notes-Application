@@ -14,10 +14,7 @@ class NoteListCreate(generics.ListCreateAPIView):
         return Note.objects.filter(author=user) #Only return notes that belong to the authenticated user
     
     def perform_create(self, serializer):
-        if serializer.is_valid():
-            serializer.save(author=self.request.user) 
-        else:
-            print(serializer.errors)
+        serializer.save(author=self.request.user)
 class NoteDelete(generics.DestroyAPIView):
     serializer_class = NoteSerializer
     permission_classes = [IsAuthenticated] #Only authenticated users can access this view

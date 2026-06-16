@@ -1,7 +1,9 @@
+import "../styles/LoadingIndicator.css"
+
 function LoadingIndicator() {
     return (
-        <div className="loading-indicator">
-            <div className="spinner"></div>
+        <div className="loader-container">
+            <div className="loader"></div>
             <p>Loading...</p>
         </div>
     );

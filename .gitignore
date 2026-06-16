@@ -47,6 +47,11 @@ local_settings.py
 /static/
 /staticfiles/
 
+# Frontend (Vite/React)
+frontend/dist/
+frontend/node_modules/
+frontend/.env.local
+
 # Misc
 .gitkeep
 node_modules/
