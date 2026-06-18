@@ -18,23 +18,33 @@ A full-stack notes application with JWT-authenticated multi-user accounts. Users
 ## Architecture
 
 ```
-┌─────────────────┐        JWT Bearer token         ┌──────────────────────┐
-│  React (Vite)    │ ───────────────────────────────▶│  Django REST Framework│
-│  localStorage:    │                                  │  /api/user/register/ │
-│  access + refresh  │ ◀───────────────────────────────│  /api/token/          │
-│  tokens            │        access/refresh tokens     │  /api/token/refresh/  │
-└─────────────────┘                                  │  /api/notes/          │
-                                                        │  /api/notes/delete/<id>/│
-                                                        └──────────┬───────────┘
-                                                                   │
-                                                      psycopg2 connection probe
-                                                          at startup
-                                                       ┌───────────┴───────────┐
-                                                       │  reachable? → Postgres │
-                                                       │  (Supabase, SSL)        │
-                                                       │  unreachable? → SQLite │
-                                                       │  (backend/db.sqlite3)  │
-                                                       └────────────────────────┘
+           ┌─────────────────────────────┐           
+           │         React (Vite)        │           
+           │ stores JWT access + refresh │           
+           │    tokens in localStorage   │           
+           └─────────────────────────────┘           
+            Authorization: Bearer <token>            
+                          │                          
+                          ▼                          
+      ┌───────────────────────────────────────┐      
+      │       Django REST Framework API       │      
+      │          /api/user/register/          │      
+      │   /api/token/   /api/token/refresh/   │      
+      │ /api/notes/   /api/notes/delete/<id>/ │      
+      └───────────────────────────────────────┘      
+              psycopg2 connection probe              
+               (5s timeout) at startup               
+                          │                          
+                          ▼                          
+                    ┌────────────┐                   
+                    │ reachable? │                   
+                    └────────────┘                   
+           yes                           no          
+            ▼                            ▼           
+┌───────────────────────┐      ┌────────────────────┐
+│ PostgreSQL (Supabase) │      │       SQLite       │
+│      SSL required     │      │ backend/db.sqlite3 │
+└───────────────────────┘      └────────────────────┘
 ```
 
 - **Backend** (`backend/`) — single Django project (`backend`) with one app (`api`). DRF generic views (`NoteListCreate`, `NoteDelete`, `CreateUserView`) handle CRUD; every queryset is filtered by `request.user` so the database itself enforces data isolation, not just the frontend.
