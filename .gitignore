@@ -10,6 +10,15 @@ ENV/
 .env.*.local
 .env.production
 
+# Secrets / keys (defense-in-depth — should never exist in this repo)
+*.pem
+*.key
+*.crt
+*.p12
+id_rsa*
+credentials*.json
+serviceAccount*.json
+
 # Database
 *.sqlite3
 *.sqlite
@@ -55,3 +64,4 @@ frontend/.env.local
 # Misc
 .gitkeep
 node_modules/
+CLAUDE.md

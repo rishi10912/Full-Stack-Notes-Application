@@ -14,6 +14,7 @@ from pathlib import Path
 from datetime import timedelta
 from dotenv import load_dotenv
 import os
+# Optional utility, or parse the URI manually
 
 load_dotenv()
 
@@ -102,12 +103,54 @@ WSGI_APPLICATION = "backend.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
+import psycopg2
+
+SQLITE_DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
+
+POSTGRES_DB_CONFIG = {
+    "ENGINE": "django.db.backends.postgresql",
+    "NAME": os.getenv("DB_NAME", "postgres"),
+    "USER": os.getenv("DB_USER", "postgres"),
+    "PASSWORD": os.getenv("DB_PWD", "password"),
+    "HOST": os.getenv("DB_HOST", "localhost"),
+    "PORT": os.getenv("DB_PORT", "5432"),
+    "OPTIONS": {"sslmode": "require"},  # Supabase expects TLS on its public endpoint
+}
+
+
+def _postgres_is_reachable(config, timeout_seconds=5):
+    try:
+        conn = psycopg2.connect(
+            dbname=config["NAME"],
+            user=config["USER"],
+            password=config["PASSWORD"],
+            host=config["HOST"],
+            port=config["PORT"],
+            sslmode=config["OPTIONS"]["sslmode"],
+            connect_timeout=timeout_seconds,
+        )
+        conn.close()
+        return True
+    except Exception as exc:
+        print(
+            "WARNING: Could not reach Postgres database at "
+            f"{config['HOST']}:{config['PORT']} ({exc.__class__.__name__}: {exc}). "
+            "Falling back to local sqlite3 database (backend/db.sqlite3)."
+        )
+        return False
+
+
+if _postgres_is_reachable(POSTGRES_DB_CONFIG):
+    print(f"INFO: Using Postgres database at {POSTGRES_DB_CONFIG['HOST']}")
+    DATABASES = {"default": POSTGRES_DB_CONFIG}
+else:
+    print("INFO: Using local sqlite3 database (backend/db.sqlite3)")
+    DATABASES = SQLITE_DATABASES
 
 
 # Password validation
